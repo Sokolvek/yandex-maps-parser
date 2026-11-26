@@ -23,6 +23,12 @@ SITE_SELECTORS = [
     "a[class*='action-button-view'][href^='http']:not([href*='yandex.'])",
 ]
 
+MEDIA_SELECTORS = [
+    "a[href*='https://vk.ru']",
+    "a[href*='https://t.me']",
+    "a[href*='https://wa.me']",
+]
+
 
 async def _extract_card_detail(page, card, idx, log):
     """Кликает на карточку и собирает данные из боковой панели."""
@@ -50,7 +56,13 @@ async def _extract_card_detail(page, card, idx, log):
                 if txt:
                     phone = txt
                     break
-
+        media = []
+        for sel in MEDIA_SELECTORS:
+            el = await page.query_selector(sel)
+            if el:
+                txt = (await el.get_attribute("href")).strip()
+                if txt: media.append(txt)
+                
         site = ""
         for sel in SITE_SELECTORS:
             el = await page.query_selector(sel)
@@ -67,6 +79,7 @@ async def _extract_card_detail(page, card, idx, log):
             "phone": phone,
             "site": site,
             "has_site": bool(site),
+            "media":media,
         }
     except Exception as e:
         log(f"[{idx}] ошибка карточки: {e}")
@@ -145,6 +158,7 @@ async def search_async(category, city, max_results=80, headless=True,
                 log("Остановлено пользователем.")
                 break
             data = await _extract_card_detail(page, card, i, log)
+            log(f"I GOT DATA {data["media"]}")
             if not data:
                 continue
             data["category"] = category

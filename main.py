@@ -534,6 +534,7 @@ class ParserApp:
         label.configure(text=value)
 
     # ---------- Экспорт ----------
+    # TODO: add export to csv
     def export_excel(self):
         if not self.results:
             return
